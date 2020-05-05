@@ -12,7 +12,7 @@ magick convert -verbose -define tiff:tile-geometry=256x256 input_image.xxx -comp
 ```
 This will produce 256x256 tiled LZW (lossless) compressed TIFF file.
 
-Alternatively you can try to use bftools [https://docs.openmicroscopy.org/bio-formats/latest/users/comlinetools/index.html] 
+Alternatively you can try to use [bftools](https://docs.openmicroscopy.org/bio-formats/latest/users/comlinetools/index.html) 
 
 ## CLI usage
 
