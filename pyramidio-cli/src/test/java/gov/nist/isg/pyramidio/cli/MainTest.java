@@ -25,14 +25,16 @@ import org.junit.Test;
 public class MainTest {
 
     private static final String testDataFolder = "../test-data/";
-    private static final String pyramidFilesFolder = "grand-canyon-landscape-overlooking_files";
+    private static final String pyramidFilesFolder = "tiled256_jpg_files";
 
     @Test
     public void testMain() throws IOException {
         Path tmpDir = Files.createTempDirectory("pyramidio-test");
         Main.main(new String[]{
+        	"-tf",
+        	"jpg",
             "-i",
-            testDataFolder + "grand-canyon-landscape-overlooking.jpg",
+            testDataFolder + "tiled256_jpg.tif",
             "-o",
             tmpDir.toString()
         });

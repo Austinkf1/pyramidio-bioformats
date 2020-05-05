@@ -12,8 +12,10 @@
 package gov.nist.isg.pyramidio.cli;
 
 import gov.nist.isg.archiver.FilesArchiver;
-import gov.nist.isg.pyramidio.DirectImageReader;
+//@darwinjob import gov.nist.isg.pyramidio.DirectImageReader;
 import gov.nist.isg.pyramidio.ScalablePyramidBuilder;
+import no.uio.nesys.pyramidio.BioFormatsImageReader;
+
 import java.io.File;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -28,6 +30,7 @@ import org.apache.commons.io.FilenameUtils;
 /**
  *
  * @author Antoine Vandecreme
+ * @modified darwinjob
  */
 public class Main {
 
@@ -131,7 +134,8 @@ public class Main {
                 try (FilesArchiver archiver = FilesArchiverFactory
                         .createFromURI(outputFolder)) {
                     spb.buildPyramid(
-                            new DirectImageReader(inputFile),
+                            //@darwinjob new DirectImageReader(inputFile),
+                    		new BioFormatsImageReader(inputFile),
                             inputFileBaseName,
                             archiver,
                             parallelism,
