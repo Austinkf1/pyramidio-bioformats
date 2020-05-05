@@ -1,4 +1,6 @@
-# PyramidIO: image pyramid reader/writer tool
+# PyramidIO: image pyramid reader/writer tool. Bio-Formats enhanced version.
+
+This fork features BioFormatsImageReader which provides support for [reading over 100 image formats](https://docs.openmicroscopy.org/bio-formats/latest/supported-formats.html) and potentially converting them to [DZI pyramids](https://en.wikipedia.org/wiki/Deep_Zoom) suitable for using with different viewers, including, but not limited to, [OpenSeadragon](https://openseadragon.github.io) based viewers.
 
 ## CLI usage
 
