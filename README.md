@@ -1,4 +1,4 @@
-# PyramidIO: image pyramid reader/writer tool. Bio-Formats enhanced version.
+# PyramidIO: image pyramid reader/writer tool.</br>Bio-Formats enhanced version.
 
 This fork features BioFormatsImageReader which provides support for [reading over 100 image formats](https://docs.openmicroscopy.org/bio-formats/latest/supported-formats.html) and potentially converting them to [DZI pyramids](https://en.wikipedia.org/wiki/Deep_Zoom) suitable for using with different viewers, including, but not limited to, [OpenSeadragon](https://openseadragon.github.io) based viewers.
 
@@ -38,6 +38,17 @@ To get the list of all the options, one can type:
 ```
 java -jar pyramidio-cli-[version].jar -h
 ```
+
+Please note that the default pyramid tiles format is the same as the input image. In case of TIFF you want to avoid this. The following command will specify the tiles format:
+```
+java -jar -jar pyramidio-cli-[version].jar -i my-image.tif -tf png -o outputfolder
+```
+This will produce a pyramid with PNG (lossless) tiles.
+
+```
+java -jar -jar pyramidio-cli-[version].jar -i my-image.tif -tf jpg -o outputfolder
+```
+This will produce a pyramid with JPG (lossy) tiles.
 
 ## Library usage
 
