@@ -27,27 +27,13 @@ java -jar pyramidio-cli-[version].jar -h
 
 ## Library usage
 
-### Maven dependency
-
-To use PyramidIO as a library, one should setup the maven dependencies like this:
-
-```
-<dependency>
-    <groupId>gov.nist.isg</groupId>
-    <artifactId>pyramidio</artifactId>
-    <version>...</version>
-</dependency>
-```
-
-Add the `tar-archiver` artifact for tar support and `hdfs-archiver` for HDFS support.
-
 ### Write a DZI pyramid
 
 To write a DZI pyramid, one should use the gov.nist.isg.pyramidio.ScalablePyramidBuilder class:
 ```java
 ScalablePyramidBuilder spb = new ScalablePyramidBuilder(tileSize, tileOverlap, tileFormat, "dzi");
 FilesArchiver archiver = new DirectoryArchiver(outputFolder);
-PartialImageReader pir = new BufferedImageReader(imageFile);
+BioFormatsImageReader pir = new BioFormatsImageReader(imageFile);
 spb.buildPyramid(pir, "pyramidName", archiver, parallelism);
 ```
 Currently the available `FilesArchiver`s are:
@@ -59,6 +45,7 @@ Currently the available `FilesArchiver`s are:
 * `S3Archiver`: save files to a folder on a S3 bucket.
 
 As for the `PartialImageReader`s:
+* `BioFormatsImageReader`: read an image using Bio-Formats library.
 * `BufferedImageReader`: read an image from the disk and store it in RAM.
 * `DeepZoomImageReader`: read a DZI pyramid.
 * `MistStitchedImageReader`: read a [MIST](https://github.com/NIST-ISG/MIST) translation vector.
