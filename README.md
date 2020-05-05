@@ -43,12 +43,12 @@ java -jar pyramidio-cli-[version].jar -h
 
 Please note that the default pyramid tiles format is the same as the input image. In case of TIFF you want to avoid this. The following command will specify the tiles format:
 ```
-java -jar -jar pyramidio-cli-[version].jar -i my-image.tif -tf png -o outputfolder
+java -jar pyramidio-cli-[version].jar -i my-image.tif -tf png -o outputfolder
 ```
 This will produce a pyramid with PNG (lossless) tiles.
 
 ```
-java -jar -jar pyramidio-cli-[version].jar -i my-image.tif -tf jpg -o outputfolder
+java -jar pyramidio-cli-[version].jar -i my-image.tif -tf jpg -o outputfolder
 ```
 This will produce a pyramid with JPG (lossy) tiles.
 
