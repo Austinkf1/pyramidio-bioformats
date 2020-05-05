@@ -2,6 +2,18 @@
 
 This fork features BioFormatsImageReader which provides support for [reading over 100 image formats](https://docs.openmicroscopy.org/bio-formats/latest/supported-formats.html) and potentially converting them to [DZI pyramids](https://en.wikipedia.org/wiki/Deep_Zoom) suitable for using with different viewers, including, but not limited to, [OpenSeadragon](https://openseadragon.github.io) based viewers.
 
+While the reader should work with the all formats supported by Bio-Formats, the preferred, most tested and efficient image input format is tiled TIFF/BigTIFF with LZW or JPEG compression. Please consider converting your images to the mentioned format by using [ImageMagick tool](https://imagemagick.org), the command example:
+```
+magick convert -verbose -define tiff:tile-geometry=256x256 input_image.xxx -compress jpeg -quality 95 output_image.tif
+```
+This will produce 256x256 tiled JPEG (lossy) compressed TIFF file.
+```
+magick convert -verbose -define tiff:tile-geometry=256x256 input_image.xxx -compress lzw output_image.tif
+```
+This will produce 256x256 tiled LZW (lossless) compressed TIFF file.
+
+Alternatively you can try to use bftools [https://docs.openmicroscopy.org/bio-formats/latest/users/comlinetools/index.html] 
+
 ## CLI usage
 
 The CLI allows to build a DZI pyramid from an image.
