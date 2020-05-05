@@ -14,6 +14,8 @@ This will produce 256x256 tiled LZW (lossless) compressed TIFF file.
 
 Alternatively you can try to use [bftools](https://docs.openmicroscopy.org/bio-formats/latest/users/comlinetools/index.html) 
 
+Tip: avoid multipage TIFF files.
+
 ## CLI usage
 
 The CLI allows to build a DZI pyramid from an image.
