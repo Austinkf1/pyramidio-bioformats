@@ -52,6 +52,10 @@ java -jar pyramidio-cli-[version].jar -i my-image.tif -tf jpg -o outputfolder
 ```
 This will produce a pyramid with JPG (lossy) tiles.
 
+## How to view a pyramid
+
+The simplest way is to use [OpenSeadragon JavaScript library](https://openseadragon.github.io). The example index.html file and the pyramid (tiled256_jpg.dzi file and tiled256_jpg_files folder) are here: https://github.com/darwinjob/pyramidio-bioformats/tree/master/test-data Copy these 3 items and open index.html with your browser.
+
 ## Library usage
 
 ### Write a DZI pyramid
