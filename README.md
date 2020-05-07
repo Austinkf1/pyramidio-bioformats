@@ -94,4 +94,4 @@ BufferedImage regionAtZoom0_1 = reader.getSubImage(
 
 ## Disclaimer:
 
-This software is based on https://github.com/usnistgov/pyramidio from the National Institute of Standards and Technology and https://www.openmicroscopy.org/bio-formats/ from The Open Microscopy Environment.
+This software is based on https://github.com/usnistgov/pyramidio from the National Institute of Standards and Technology and https://www.openmicroscopy.org/bio-formats/ from The Open Microscopy Environment. First publication  https://www.openmicroscopy.org/community/viewtopic.php?p=17715
