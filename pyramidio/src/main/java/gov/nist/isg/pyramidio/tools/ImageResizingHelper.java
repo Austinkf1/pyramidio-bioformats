@@ -42,35 +42,32 @@ public class ImageResizingHelper {
         if (currentWidth == width && currentHeight == height) {
             return img;
         }
-        if (img.getType() == BufferedImage.TYPE_USHORT_GRAY) {
-            return resize16bppImage(img, width, height);
-        }
-        if (img.getColorModel().getPixelSize() == 32) {
-            return resize32bppImage(img, width, height);
-        }
+        /*if (currentWidth == 2 * width && currentHeight == 2 * height) {
+            return scaleDownTwice(img);
+        }*/
+        return resizeImageGraphics2D(img, width, height);
+    }
 
-        if (width > currentWidth || height > currentHeight) {
-            return resizeImageGraphics2D(img, width, height);
-        } else {
-            BufferedImage result = img;
-            double ratio = 0.79;
-            do {
-                if (currentWidth > width) {
-                    currentWidth *= ratio;
-                    if (currentWidth < width) {
-                        currentWidth = width;
-                    }
+    private static BufferedImage scaleDownTwice(BufferedImage img) {
+        int width = img.getWidth() / 2, height = img.getHeight() / 2;
+        BufferedImage result = new BufferedImage(width, height, img.getType());
+        WritableRaster raster = result.getRaster();
+        WritableRaster inputRaster = img.getRaster();
+
+        int[] pixels = new int[4];
+        for(int y = 0; y < height; y++)
+            for(int x = 0; x < width; x++) {
+                inputRaster.getSamples(x * 2, y * 2, 2, 2, 0, pixels);
+                int resultSample = 0;
+                for(int k = 0; k < 24; k += 8) {
+                    int mask = 255 << k;
+                    int sum = (pixels[0] & mask) + (pixels[1] & mask)
+                         + (pixels[2] & mask) + (pixels[3] & mask);
+                    resultSample |= (sum >> 2) & mask;
                 }
-                if (currentHeight > height) {
-                    currentHeight *= ratio;
-                    if (currentHeight < height) {
-                        currentHeight = height;
-                    }
-                }
-                result = resizeImageGraphics2D(result, currentWidth, currentHeight);
-            } while (currentWidth != width || currentHeight != height);
-            return result;
-        }
+                raster.setSample(x, y, 0, resultSample);
+            }
+        return result;
     }
 
     private static BufferedImage resizeImageGraphics2D(BufferedImage img,
@@ -78,7 +75,7 @@ public class ImageResizingHelper {
         BufferedImage result = new BufferedImage(width, height, img.getType());
         Graphics2D g = result.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.drawImage(img, 0, 0, width, height, 0, 0, img.getWidth(), img.getHeight(), null);
         g.dispose();
         return result;

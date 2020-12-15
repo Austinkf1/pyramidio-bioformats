@@ -80,7 +80,7 @@ public class ScalablePyramidBuilder {
         buildPyramid(imageReader, fileName, archiver, parallelism, 0);
     }
 
-    /**
+        /**
      * Build the DeepZoom pyramid from the given image reader.
      *
      * @param imageReader the image reader used to generate the deep zoom image
@@ -94,8 +94,27 @@ public class ScalablePyramidBuilder {
      */
     public void buildPyramid(PartialImageReader imageReader, String fileName,
             FilesArchiver archiver, int parallelism, float maxImageCachePercentage) throws IOException {
+        buildPyramid(imageReader, fileName, archiver, parallelism, 0, null);
+    }
+
+    /**
+     * Build the DeepZoom pyramid from the given image reader.
+     *
+     * @param imageReader the image reader used to generate the deep zoom image
+     * @param fileName the filename of the image
+     * @param archiver the archiver to use to store the image
+     * @param parallelism the parallelism level
+     * @param maxImageCachePercentage the maximum portion of the input image
+     * which should be cached in RAM. Set to 0 for no cache, 1 to cache the
+     * entire image. Default to 0.
+     * @param callback callback for reporting progress
+     * @throws IOException
+     */
+    public void buildPyramid(PartialImageReader imageReader, String fileName,
+            FilesArchiver archiver, int parallelism, float maxImageCachePercentage,
+            BuildProcessCallback callback) throws IOException {
         new TileBuilder(tileSize, overlap, tileFormat, descriptorExt,
-                imageReader, fileName, archiver)
+                imageReader, fileName, archiver, callback)
                 .build(parallelism, maxImageCachePercentage);
     }
 

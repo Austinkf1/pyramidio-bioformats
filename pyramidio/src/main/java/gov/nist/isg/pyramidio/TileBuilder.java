@@ -51,14 +51,17 @@ class TileBuilder {
     private final int originalWidth;
     private final int originalHeight;
 
+    private final BuildProcessCallback callback;
+
     TileBuilder(int tileSize, int overlap, String tileFormat,
             String descriptorExt, PartialImageReader imageReader,
-            String fileName, FilesArchiver archiver) throws IOException {
+            String fileName, FilesArchiver archiver, BuildProcessCallback callback) throws IOException {
         this.tileSize = tileSize;
         this.overlap = overlap;
         this.tileFormat = tileFormat;
         this.imageReader = imageReader;
         this.archiver = archiver;
+        this.callback = callback;
 
         originalWidth = imageReader.getWidth();
         originalHeight = imageReader.getHeight();
@@ -78,8 +81,14 @@ class TileBuilder {
     void build(int parallelism, float maxImageCachePercentage) {
         boolean useCache = maxImageCachePercentage > 0;
         int cacheLevel = getCacheLevel(maxImageCachePercentage);
+
+        if(callback != null) {
+            long area = (long) imageReader.getWidth() * (long) imageReader.getHeight();
+            callback.init(area);
+        }
+
         if (parallelism <= 1) {
-            new TileBuilderTask(0, 0, 0, false, useCache, cacheLevel, null)
+            new TileBuilderTask(0, 0, 0, false, useCache, cacheLevel, null, callback)
                     .compute();
             return;
         }
@@ -87,7 +96,7 @@ class TileBuilder {
         ForkJoinPool forkJoinPool = new ForkJoinPool(parallelism);
         try {
             forkJoinPool.invoke(new TileBuilderTask(
-                    0, 0, 0, true, useCache, cacheLevel, null));
+                    0, 0, 0, true, useCache, cacheLevel, null, callback));
         } finally {
             forkJoinPool.shutdownNow();
         }
@@ -129,16 +138,18 @@ class TileBuilder {
         private final boolean useCache;
         private final int cacheLevel;
         private final ImageReaderCache imageReaderCache;
+        private final BuildProcessCallback callback;
 
         private TileBuilderTask(int level, int tileRow, int tileColumn,
                 boolean useFork, boolean useCache, int cacheLevel,
-                ImageReaderCache imageReaderCache) {
+                ImageReaderCache imageReaderCache, BuildProcessCallback callback) {
             this.level = level;
             this.tileRow = tileRow;
             this.tileColumn = tileColumn;
             this.useFork = useFork;
             this.useCache = useCache;
             this.cacheLevel = cacheLevel;
+            this.callback = callback;
 
             if (useCache && level == cacheLevel) {
                 Rectangle tileRegion = getTileRegionInEntireImage(
@@ -164,6 +175,12 @@ class TileBuilder {
             if (level == nbLevels) {
                 try {
                     result = getTile(tileRow, tileColumn);
+                    if(callback != null) {
+                        long area = (long) (result.getWidth() - 2 * overlap) *
+                            (long) (result.getHeight() - 2 * overlap);
+                        if(area > 0)
+                            callback.update(area);
+                    }
                 } catch (IOException ex) {
                     throw new RuntimeException("Cannot read tile at row "
                             + tileRow + " column " + tileColumn + ".", ex);
@@ -185,13 +202,13 @@ class TileBuilder {
                 BufferedImage bottomRight;
                 if (useFork && (!useCache || level >= cacheLevel)) {
                     TileBuilderTask topLeftTask = getTask(
-                            level + 1, tileRow * 2, tileColumn * 2);
+                            level + 1, tileRow * 2, tileColumn * 2, null);
                     TileBuilderTask topRightTask = getTask(
-                            level + 1, tileRow * 2, tileColumn * 2 + 1);
+                            level + 1, tileRow * 2, tileColumn * 2 + 1, null);
                     TileBuilderTask bottomLeftTask = getTask(
-                            level + 1, tileRow * 2 + 1, tileColumn * 2);
+                            level + 1, tileRow * 2 + 1, tileColumn * 2, null);
                     TileBuilderTask bottomRightTask = getTask(
-                            level + 1, tileRow * 2 + 1, tileColumn * 2 + 1);
+                            level + 1, tileRow * 2 + 1, tileColumn * 2 + 1, null);
                     topLeftTask.fork();
                     topRightTask.fork();
                     bottomLeftTask.fork();
@@ -199,20 +216,27 @@ class TileBuilder {
                     topLeft = topLeftTask.join();
                     topRight = topRightTask.join();
                     bottomLeft = bottomLeftTask.join();
+                    if(callback != null) {
+                        Rectangle region = getTileRegionInEntireImage(level, tileRow, tileColumn);
+                        long area = (long) (region.width - 2 * overlap) *
+                             (long) (region.height - 2 * overlap);
+                        if(area > 0)
+                            callback.update(area);
+                    }
                 } else {
                     // Important to build task and then compute immediately
                     // because getTask might fill the cache.
                     TileBuilderTask topLeftTask = getTask(
-                            level + 1, tileRow * 2, tileColumn * 2);
+                            level + 1, tileRow * 2, tileColumn * 2, callback);
                     topLeft = topLeftTask.compute();
                     TileBuilderTask topRightTask = getTask(
-                            level + 1, tileRow * 2, tileColumn * 2 + 1);
+                            level + 1, tileRow * 2, tileColumn * 2 + 1, callback);
                     topRight = topRightTask.compute();
                     TileBuilderTask bottomLeftTask = getTask(
-                            level + 1, tileRow * 2 + 1, tileColumn * 2);
+                            level + 1, tileRow * 2 + 1, tileColumn * 2, callback);
                     bottomLeft = bottomLeftTask.compute();
                     TileBuilderTask bottomRightTask = getTask(
-                            level + 1, tileRow * 2 + 1, tileColumn * 2 + 1);
+                            level + 1, tileRow * 2 + 1, tileColumn * 2 + 1, callback);
                     bottomRight = bottomRightTask.compute();
                 }
 
@@ -265,9 +289,10 @@ class TileBuilder {
             return result;
         }
 
-        private TileBuilderTask getTask(int level, int tileRow, int tileColumn) {
+        private TileBuilderTask getTask(int level, int tileRow, int tileColumn,
+            BuildProcessCallback callback) {
             return new TileBuilderTask(level, tileRow, tileColumn, useFork,
-                    useCache, cacheLevel, imageReaderCache);
+                    useCache, cacheLevel, imageReaderCache, callback);
         }
 
         private BufferedImage getTile(int row, int col)

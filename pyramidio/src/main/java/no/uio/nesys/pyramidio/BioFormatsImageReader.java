@@ -28,10 +28,17 @@ public class BioFormatsImageReader implements PartialImageReader {
 		bufferedImageReader = new BufferedImageReader(imageReader);
 	}
 
-//	public BioFormatsImageReader(ImageReader imageReader) {
-//		this.imageReader = imageReader;
-//		bufferedImageReader = new BufferedImageReader(imageReader);
-//	}
+	public BioFormatsImageReader(File file, int series) throws FormatException, IOException {
+		imageReader = new ImageReader();
+		imageReader.setId(file.getPath());
+		imageReader.setSeries(series);
+		bufferedImageReader = new BufferedImageReader(imageReader);
+	}
+
+	public BioFormatsImageReader(ImageReader imageReader) {
+		this.imageReader = imageReader;
+		bufferedImageReader = new BufferedImageReader(imageReader);
+	}
 
 	@Override
 	public BufferedImage read() throws IOException {
