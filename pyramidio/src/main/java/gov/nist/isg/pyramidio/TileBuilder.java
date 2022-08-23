@@ -286,6 +286,7 @@ class TileBuilder {
                             + tileColumn + ".", ex);
                 }
             }
+            System.gc();
             return result;
         }
 
