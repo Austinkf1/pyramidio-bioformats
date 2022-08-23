@@ -137,7 +137,7 @@ class TileBuilder {
         private final boolean useFork;
         private final boolean useCache;
         private final int cacheLevel;
-        private final ImageReaderCache imageReaderCache;
+        public ImageReaderCache imageReaderCache;
         private final BuildProcessCallback callback;
 
         private TileBuilderTask(int level, int tileRow, int tileColumn,
@@ -171,7 +171,7 @@ class TileBuilder {
         @Override
         protected BufferedImage compute() {
             BufferedImage result;
-
+            
             if (level == nbLevels) {
                 try {
                     result = getTile(tileRow, tileColumn);
@@ -286,6 +286,7 @@ class TileBuilder {
                             + tileColumn + ".", ex);
                 }
             }
+            this.imageReaderCache = null;
             System.gc();
             return result;
         }
