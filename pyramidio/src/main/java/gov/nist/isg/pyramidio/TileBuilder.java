@@ -99,8 +99,7 @@ class TileBuilder {
         ForkJoinPool forkJoinPool = new ForkJoinPool(parallelism);
         try 
         {
-            forkJoinPool.invoke(new TileBuilderTask(
-                    0, 0, 0, true, useCache, cacheLevel, null, callback));
+            forkJoinPool.invoke(new TileBuilderTask(0, 0, 0, true, useCache, cacheLevel, null, callback));
         }
         finally 
         {
