@@ -287,6 +287,7 @@ class TileBuilder {
                 }
             }
             this.imageReaderCache = null;
+            System.out.println("Reseting Tile");
             System.gc();
             return result;
         }
