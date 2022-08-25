@@ -214,7 +214,7 @@ class TileBuilder {
                 }
             }
 
-            this.imageReaderCache = imageReaderCache;
+            this.imageReaderCache = null;//imageReaderCache;
         }
 
         @Override
