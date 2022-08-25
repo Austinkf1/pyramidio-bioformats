@@ -193,37 +193,7 @@ class TileBuilder {
 
             this.imageReaderCache = imageReaderCache;                        
         }
-        
-        private TileBuilderTask(int level, int tileRow, int tileColumn, boolean useFork, boolean useCache, int cacheLevel, BuildProcessCallback callback) 
-        {
-            this.level = level;
-            this.tileRow = tileRow;
-            this.tileColumn = tileColumn;
-            this.useFork = useFork;
-            this.useCache = useCache;
-            this.cacheLevel = cacheLevel;
-            this.callback = callback;
-            /*
-            if (useCache && level == cacheLevel) 
-            {
-                Rectangle tileRegion = getTileRegionInEntireImage(level, tileRow, tileColumn);
-                if (tileRegion != null) 
-                {
-                    try 
-                    {
-                        imageReaderCache = new ImageReaderCache(imageReader, tileRegion);
-                    } 
-                    catch (Exception e) 
-                    {
-                        throw new RuntimeException("Cannot cache region "
-                                + tileRegion, e);
-                    }
-                }
-            }
-			*/
-            //this.imageReaderCache = null;//imageReaderCache;
-        }
-
+                
         @Override
         protected BufferedImage compute() 
         {
