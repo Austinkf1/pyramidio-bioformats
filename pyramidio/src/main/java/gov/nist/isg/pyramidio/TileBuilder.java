@@ -57,19 +57,20 @@ class TileBuilder {
             String descriptorExt, PartialImageReader imageReader,
             String fileName, FilesArchiver archiver, BuildProcessCallback callback) throws IOException 
     {
-        this.tileSize = tileSize;
-        this.overlap = overlap;
-        this.tileFormat = tileFormat;
+        this.tileSize    = tileSize;
+        this.overlap     = overlap;
+        this.tileFormat  = tileFormat;
         this.imageReader = imageReader;
-        this.archiver = archiver;
-        this.callback = callback;
+        this.archiver    = archiver;
+        this.callback    = callback;
 
-        originalWidth = imageReader.getWidth();
+        originalWidth  = imageReader.getWidth();
         originalHeight = imageReader.getHeight();
 
         String nameWithoutExtension = FilenameUtils.getBaseName(fileName);
-        String descriptorName = nameWithoutExtension + '.' + descriptorExt;
-        DziFile dziFile = new DziFile(tileSize, overlap, tileFormat, originalWidth, originalHeight);
+        String descriptorName       = nameWithoutExtension + '.' + descriptorExt;
+        DziFile dziFile 			= new DziFile(tileSize, overlap, tileFormat, originalWidth, originalHeight);
+        
         dziFile.write(descriptorName, archiver);
 
         int maxDim = Math.max(originalWidth, originalHeight);
@@ -79,24 +80,29 @@ class TileBuilder {
     }
 
     void build(int parallelism, float maxImageCachePercentage) 
-    {
-        boolean useCache = maxImageCachePercentage > 0;
-        int cacheLevel = getCacheLevel(maxImageCachePercentage);
+    {    	
+        boolean useCache   = maxImageCachePercentage > 0;
+        int     cacheLevel = getCacheLevel(maxImageCachePercentage);
 
+        //System.out.println("Parallelism: " + parallelism);
+        //System.out.println("Use Cache: " + useCache);
+        //System.out.println("Cache Level: " + cacheLevel);
+        
         if(callback != null) 
         {
             long area = (long) imageReader.getWidth() * (long) imageReader.getHeight();
             callback.init(area);
         }
 
-        if (parallelism <= 1) 
-        {
+        if( parallelism <= 1 ) 
+        {        	
             new TileBuilderTask(0, 0, 0, false, useCache, cacheLevel, null, callback)
                     .compute();
             return;
         }
 
         ForkJoinPool forkJoinPool = new ForkJoinPool(parallelism);
+        
         try 
         {
             forkJoinPool.invoke(new TileBuilderTask(0, 0, 0, true, useCache, cacheLevel, null, callback));
@@ -172,9 +178,10 @@ class TileBuilder {
                 
                 if( tileRegion != null ) 
                 {
+                	//System.out.println("Tile Reqion not null");
                     try 
                     {
-                        imageReaderCache = new ImageReaderCache(imageReader, tileRegion);
+                        imageReaderCache = new ImageReaderCache(imageReader, tileRegion);                                                
                     } 
                     catch( Exception e ) 
                     {
@@ -184,7 +191,7 @@ class TileBuilder {
                 }
             }
 
-            this.imageReaderCache = imageReaderCache;
+            this.imageReaderCache = imageReaderCache;                        
         }
         
         private TileBuilderTask(int level, int tileRow, int tileColumn, boolean useFork, boolean useCache, int cacheLevel, BuildProcessCallback callback) 
@@ -196,7 +203,7 @@ class TileBuilder {
             this.useCache = useCache;
             this.cacheLevel = cacheLevel;
             this.callback = callback;
-
+            /*
             if (useCache && level == cacheLevel) 
             {
                 Rectangle tileRegion = getTileRegionInEntireImage(level, tileRow, tileColumn);
@@ -213,8 +220,8 @@ class TileBuilder {
                     }
                 }
             }
-
-            this.imageReaderCache = null;//imageReaderCache;
+			*/
+            //this.imageReaderCache = null;//imageReaderCache;
         }
 
         @Override
@@ -256,23 +263,21 @@ class TileBuilder {
                 BufferedImage topLeft;
                 BufferedImage topRight;
                 BufferedImage bottomLeft;
-                BufferedImage bottomRight;
+                BufferedImage bottomRight;                               
+
                 if( useFork && (!useCache || level >= cacheLevel) ) 
                 {
-                	System.out.println("No Use Cache Compute");
-                    TileBuilderTask topLeftTask = getTask(
-                            level + 1, tileRow * 2, tileColumn * 2, null);
-                    TileBuilderTask topRightTask = getTask(
-                            level + 1, tileRow * 2, tileColumn * 2 + 1, null);
-                    TileBuilderTask bottomLeftTask = getTask(
-                            level + 1, tileRow * 2 + 1, tileColumn * 2, null);
-                    TileBuilderTask bottomRightTask = getTask(
-                            level + 1, tileRow * 2 + 1, tileColumn * 2 + 1, null);
+                	//System.out.println("No Use Cache Compute");
+                    TileBuilderTask topLeftTask = getTask(level + 1, tileRow * 2, tileColumn * 2, null);
+                    TileBuilderTask topRightTask = getTask(level + 1, tileRow * 2, tileColumn * 2 + 1, null);
+                    TileBuilderTask bottomLeftTask = getTask(level + 1, tileRow * 2 + 1, tileColumn * 2, null);
+                    TileBuilderTask bottomRightTask = getTask(level + 1, tileRow * 2 + 1, tileColumn * 2 + 1, null);
                     topLeftTask.fork();
                     topRightTask.fork();
                     bottomLeftTask.fork();
+                    bottomRightTask.fork();
                     
-                    bottomRight = bottomRightTask.computeCache(imageReaderCache);
+                    bottomRight = bottomRightTask.join();
                     topLeft     = topLeftTask.join();
                     topRight    = topRightTask.join();
                     bottomLeft  = bottomLeftTask.join();
@@ -284,23 +289,24 @@ class TileBuilder {
                         if(area > 0)
                             callback.update(area);
                     }
-                } 
-                else 
+                }                 
+                else
                 {
-                	System.out.println("Use Cache Compute");
+                	//System.out.println("Use Cache Compute");
+                	        	
                     // Important to build task and then compute immediately
                     // because getTask might fill the cache.
                     TileBuilderTask topLeftTask = getTask(level + 1, tileRow * 2, tileColumn * 2, callback);
-                    topLeft = topLeftTask.computeCache(imageReaderCache);
+                    topLeft = topLeftTask.compute();
                     
                     TileBuilderTask topRightTask = getTask(level + 1, tileRow * 2, tileColumn * 2 + 1, callback);
-                    topRight = topRightTask.computeCache(imageReaderCache);
+                    topRight = topRightTask.compute();
                     
                     TileBuilderTask bottomLeftTask = getTask(level + 1, tileRow * 2 + 1, tileColumn * 2, callback);
-                    bottomLeft = bottomLeftTask.computeCache(imageReaderCache);
+                    bottomLeft = bottomLeftTask.compute();
                     
                     TileBuilderTask bottomRightTask = getTask(level + 1, tileRow * 2 + 1, tileColumn * 2 + 1, callback);
-                    bottomRight = bottomRightTask.computeCache(imageReaderCache);
+                    bottomRight = bottomRightTask.compute();
                 }
 
                 int bigWidth  = topLeft.getWidth() + (topRight == null ? 0 : topRight.getWidth() - 2 * overlap);
@@ -348,7 +354,7 @@ class TileBuilder {
                 }
             }
             this.imageReaderCache = null;
-            System.out.println("Reseting Tile");
+            //System.out.println("Reseting Tile");
             System.gc();
             
             return result;
@@ -357,6 +363,7 @@ class TileBuilder {
         protected BufferedImage computeCache( ImageReaderCache cache ) 
         {
             BufferedImage result;
+            //this.imageReaderCache = cache;
             
             if (level == nbLevels) 
             {
@@ -405,7 +412,7 @@ class TileBuilder {
                     topRightTask.fork();
                     bottomLeftTask.fork();
                     
-                    bottomRight = bottomRightTask.computeCache(imageReaderCache);
+                    bottomRight = bottomRightTask.computeCache(cache);
                     topLeft     = topLeftTask.join();
                     topRight    = topRightTask.join();
                     bottomLeft  = bottomLeftTask.join();
@@ -417,30 +424,30 @@ class TileBuilder {
                         if(area > 0)
                             callback.update(area);
                     }
-                } 
+                }                 
                 else 
                 {
                 	System.out.println("Use Cache");
                     // Important to build task and then compute immediately
                     // because getTask might fill the cache.
                     TileBuilderTask topLeftTask = getTask(level + 1, tileRow * 2, tileColumn * 2, callback);
-                    topLeft = topLeftTask.computeCache(imageReaderCache);
+                    topLeft = topLeftTask.computeCache(cache);
                     
                     TileBuilderTask topRightTask = getTask(level + 1, tileRow * 2, tileColumn * 2 + 1, callback);
-                    topRight = topRightTask.computeCache(imageReaderCache);
+                    topRight = topRightTask.computeCache(cache);
                     
                     TileBuilderTask bottomLeftTask = getTask(level + 1, tileRow * 2 + 1, tileColumn * 2, callback);
-                    bottomLeft = bottomLeftTask.computeCache(imageReaderCache);
+                    bottomLeft = bottomLeftTask.computeCache(cache);
                     
                     TileBuilderTask bottomRightTask = getTask(level + 1, tileRow * 2 + 1, tileColumn * 2 + 1, callback);
-                    bottomRight = bottomRightTask.computeCache(imageReaderCache);
+                    bottomRight = bottomRightTask.computeCache(cache);
                 }
-
+				
                 int bigWidth  = topLeft.getWidth() + (topRight == null ? 0 : topRight.getWidth() - 2 * overlap);
                 int bigHeight = topLeft.getHeight() + (bottomLeft == null ? 0 : bottomLeft.getHeight() - 2 * overlap);
 
                 result = BufferedImageHelper.createBufferedImage(bigWidth, bigHeight, topLeft);
-
+                
                 WritableRaster raster = result.getRaster();
 
                 int rightTilesX = tileSize - overlap + (tileColumn == 0 ? 0 : overlap);
@@ -480,19 +487,19 @@ class TileBuilder {
                             + tileColumn + ".", ex);
                 }
             }
-            this.imageReaderCache = null;
-            System.out.println("Reseting Tile");
-            System.gc();
+            //cache = null;
+            //System.out.println("Reseting Tile Cache");
+            //System.gc();
             return result;
         }
 
         private TileBuilderTask getTask(int level, int tileRow, int tileColumn, BuildProcessCallback callback) 
         {
-            return new TileBuilderTask(level, tileRow, tileColumn, useFork, useCache, cacheLevel, callback);
+            return new TileBuilderTask(level, tileRow, tileColumn, useFork, useCache, cacheLevel, imageReaderCache, callback);
         }
 
         private BufferedImage getTile(int row, int col) throws IOException 
-        {
+        {        	
             int x = col * tileSize - (col == 0 ? 0 : overlap);
             int y = row * tileSize - (row == 0 ? 0 : overlap);
             int w = tileSize + (col == 0 ? 1 : 2) * overlap;
@@ -510,7 +517,7 @@ class TileBuilder {
 
             Rectangle region = new Rectangle(x, y, w, h);
             if( region.isEmpty() ) 
-            {
+            {            	
                 return null;
             }
 
@@ -518,6 +525,7 @@ class TileBuilder {
                     ? imageReaderCache.read(region)
                     : imageReader.read(region);
         }
+                
     }
 
     private Rectangle getTileRegionInEntireImage(int level, int row, int col) 
